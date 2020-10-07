@@ -1,0 +1,93 @@
+Compilação (assembly) do texto E:\Lucas\Documentos\UFRJ\ArqComp\Trabalho 2\questao_3.asm
+Em 06/10/2020
+
+   1                         ORG 256
+   2                         
+   3   0100    03            INT_1:  DB 3      ; OPERANDO 1
+   4   0101    16            INT_2:  DB 22     ; OPERANDO 2
+   5   0102    0000          RESULT: DW 0      ; VARIAVEL P/ GUARDAR VALOR DA OPERACAO
+   6   0104    00            OF:     DB 0      ; VARIAVEL P/ CAPTURAR A CARRY FLAG QUANDO OCORRER
+   7                         
+   8                         ;---------------------------------------------------
+   9                         
+  10                         ORG 0
+  11                         
+  12   0000                  Is_Zero:
+  13                         ; Checando se algum dos operandos eh 0
+  14   0000    20 00 01          LDA INT_1     ; CARREGA INT_1
+  15   0003    42 00             OR  #0        ; CHECA SE EH 0
+  16   0005    A0 78 00          JZ  Fim       ; TERMINA SE FOR 0
+  17   0008    20 01 01          LDA INT_2     ; CARREGA INT_2
+  18   000B    42 00             OR  #0        ; CHECA SE EH 0
+  19   000D    A0 78 00          JZ  Fim       ; TERMINA SE FOR 0
+  20                         
+  21   0010                  Get_Sign:
+  22                         ; Caso nenhuma das entradas seja zero, segue
+  23   0010    20 00 01          LDA INT_1     ; CARREGA INT_1 NO ACC
+  24   0013    94 5E 00          JP  Loop_Pos  ; SE INT_1 > 0
+  25   0016    20 01 01          LDA INT_2     ; CARREGA INT_2 NO ACC
+  26   0019    94 27 00          JP  Loop_1Neg ; SE INT_2 > 0
+  27   001C    90 41 00          JN  Loop_2Neg ; SE INT_2 < 0
+  28                         
+  29   001F                  OF_Flag:
+  30   001F    22 01             LDA #1        ; CARREGA 1 NO ACC
+  31   0021    10 04 01          STA OF        ; GUARDA O 1 EM OF
+  32   0024    80 78 00          JMP Fim       ; PULA PARA O FIM DA EXECUCAO
+  33                         
+  34   0027                  Loop_1Neg:
+  35                         ; Loop para quando o segundo operando eh negativo
+  36   0027    20 00 01          LDA INT_1     ; CARREGA INT_1 NO ACC
+  37   002A    34 02 01          ADC RESULT    ; SOMA O RESULTADO AO ACC
+  38   002D    10 02 01          STA RESULT    ; RESULT += INT_1
+  39   0030    B0 1F 00          JC  OF_Flag   ; SE TIVER OVERFLOW, DESVIA
+  40   0033    20 01 01          LDA INT_2     ; CARREGA INT_2 NO ACC
+  41   0036    3A 01             SUB #1        ; SUBTRAI 1 DO ACC
+  42   0038    10 01 01          STA INT_2     ; INT_2 -= 1
+  43   003B    A4 27 00          JNZ Loop_1Neg ; RECOMECA O LOOP SE INT_2 != 0
+  44   003E    A0 78 00          JZ  Fim       ; VAI AO FIM DO PROGRAMA
+  45                         
+  46   0041                  Loop_2Neg:
+  47                         ; Loop para quando ambos operando sao negativos
+  48   0041    20 01 01          LDA INT_2     ; CARREGA INT_2 NO ACC
+  49   0044    60                NOT           ; INVERTE OS BITS DE INT_2  | BLOCO PARA FAZER A CONVERSAO DE NEGATIVO
+  50   0045    32 01             ADD #1        ; SOMA 1                    | PARA POSITIVO EM COMPLEMENTO A DOIS
+  51   0047    34 02 01          ADC RESULT    ; RESULT += -INT_2
+  52   004A    B0 1F 00          JC  OF_Flag   ; SE TIVER OVERFLOW, DESVIA
+  53   004D    10 02 01          STA RESULT    ; GUARDA INT_2 POSITIVO
+  54   0050    20 00 01          LDA INT_1     ; CARREGA INT_1 NO ACC
+  55   0053    32 01             ADD #1        ; ADICIONA 1 AO ACC
+  56   0055    10 00 01          STA INT_1     ; INT_1 += 1
+  57   0058    A4 41 00          JNZ Loop_2Neg ; RECOMECA O LOOP SE INT_1 != 0
+  58   005B    A0 78 00          JZ  Fim       ; VAI AO FIM DO PROGRAMA
+  59                         
+  60   005E                  Loop_Pos:
+  61                         ; Loop para quando o primeiro operando eh positivo
+  62   005E    20 01 01          LDA INT_2     ; CARREGA INT_2 NO ACC
+  63   0061    34 02 01          ADC RESULT    ; SOMA O RESULTADO AO ACC
+  64   0064    10 02 01          STA RESULT    ; RESULT += INT_2
+  65   0067    B0 1F 00          JC  OF_Flag   ; SE TIVER OVERFLOW, DESVIA
+  66   006A    20 00 01          LDA INT_1     ; CARREGA INT_1 NO ACC
+  67   006D    3A 01             SUB #1        ; SUBTRAI 1 DO ACC
+  68   006F    10 00 01          STA INT_1     ; INT_1 -= 1
+  69   0072    A4 5E 00          JNZ Loop_Pos  ; RECOMECA O LOOP SE INT_1 == 0
+  70   0075    A0 78 00          JZ  Fim       ; VAI AO FIM DO PROGRAMA
+  71                         
+  72   0078                  Fim:
+  73   0078    20 04 01          LDA OF
+  74   007B    FC                HLT
+  75                         
+
+Listagem da tabela de símbolos
+
+Símbolo         Linha  Endereço
+Fim                71  0078
+Get_Sign           20  0010
+INT_1               2  0100
+INT_2               3  0101
+Is_Zero            11  0000
+Loop_1Neg          33  0027
+Loop_2Neg          45  0041
+Loop_Pos           59  005E
+OF                  5  0104
+OF_Flag            28  001F
+RESULT              4  0102
