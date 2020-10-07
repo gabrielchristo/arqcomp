@@ -1,0 +1,129 @@
+Compilação (assembly) do texto
+Em 06/10/2020
+
+   1                         ;
+   2                         ; Programa para ordenar vetor com elementos de 16 bits em complemento a dois
+   3                         ; Algoritmo: Bubble sort em ordem crescente
+   4                         ;
+   5                         
+   6                         ;------------------------------------
+   7                         ; definicoes
+   8                         CLEAR EQU 3
+   9                         PRINT EQU 2
+  10                         
+  11                         ORG 128
+  12   0080    0000            TMP_PTR1: DW 0         ; ponteiro temporario para valor de 16 bits
+  13   0082    0000            TMP_PTR2: DW 0         ; ponteiro temporario para valor de 16 bits
+  14   0084    0000            TMP_VALUE: DW 0        ; valor temporario usado para swap dos elementos do vetor
+  15   0086    00              COUNT: DB 0            ; contador de iteracoes usado no for_loop de ordenacao
+  16   0087    01              TROCOU: DB 1           ; booleano auxiliar no loop de ordenacao (deve inicializar como true)
+  17                              
+  18   0088    1E              LENGTH: DB 30             ; definindo variavel com tamanho do vetor
+  19   0089    001E 001D...    VECTOR: DW 30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1 ; elementos do vetor
+  20   00C5    0089            VECTOR_PTR: DW VECTOR    ; definindo ponteiro para o vetor
+  21                         ;-------------------------------------
+  22                         
+  23                         ;------------------------------------
+  24                         ; main
+  25                         ORG 0
+  26                         
+  27   0000    C6 03           OUT CLEAR                   ; limpando banner
+  28   0002    20 88 00        LDA LENGTH                  ; carregando tamanho do vetor no acumulador
+  29   0005    24 C5 00        LDS VECTOR_PTR              ; ponteiro para vetor no apontador de pilha
+  30                         
+  31   0008    20 C5 00        LDA VECTOR_PTR              ; carrega ponteiro para vetor no acumulador      
+  32   000B    10 80 00        STA TMP_PTR1                ; PTR1 = &Vetor[0]
+  33   000E    32 02           ADD #2                      ; soma 2 bytes ao endere?o no acumulador
+  34   0010    10 82 00        STA TMP_PTR2                ; PTR2 = &Vetor[1]
+  35                         ;----------------------------------------
+  36                         
+  37                         ;-----------------------------------------
+  38                         ; Loops de ordenacao
+  39   0013                  WHILE_LOOP:
+  40   0013    20 87 00        LDA TROCOU             ; carrega booleano trocou no acumulador 
+  41   0016    A0 7A 00        JZ SAIR                ; se for zero termina o programa (inicializado como true para bypassar isso)
+  42   0019    22 00           LDA #0                 ; carrega zero no acumulador
+  43   001B    10 87 00        STA TROCOU             ; salva trocou como false a cada iteracao
+  44                           
+  45   001E    20 C5 00        LDA VECTOR_PTR         ; resetando ponteiros para inicio do vetor
+  46   0021    10 80 00        STA TMP_PTR1
+  47   0024    32 02           ADD #2
+  48   0026    10 82 00        STA TMP_PTR2
+  49                         
+  50   0029    22 00           LDA #0                 ; resetando contador do for_loop
+  51   002B    10 86 00        STA COUNT
+  52                         
+  53   002E                  FOR_LOOP:
+  54   002E    20 86 00        LDA COUNT         ; carregar contador de iteracoes no acumulador
+  55   0031    32 01           ADD #1            ; soma 1 ao acumulador
+  56   0033    10 86 00        STA COUNT         ; count += 1
+  57   0036    20 88 00        LDA LENGTH        ; carrega tamanho do vetor no acumulador
+  58   0039    3A 01           SUB #1            ; subtrai 1
+  59   003B    38 86 00        SUB COUNT         ; acumulador -= count
+  60   003E    90 44 00        JN FIM_FOR_LOOP   ; se for negativo finalizo o for_loop
+  61   0041    80 47 00        JMP COMPARE       ; caso contrario verifico se *ptr1 > *ptr2
+  62                         ;------------------------------------------------------
+  63                         
+  64                         ;------------------------------------------------------
+  65                         ; volta pro loop primario quando acaba o for_loop
+  66   0044                  FIM_FOR_LOOP:
+  67   0044    80 13 00        JMP WHILE_LOOP
+  68                         ;--------------------------------------------------------
+  69                         
+  70                         ;--------------------------------------------------------
+  71                         ; compara os valores apontados por ptr1 e ptr2
+  72   0047                  COMPARE:
+  73   0047    21 80 00        LDA @TMP_PTR1       ; carrega valor apontado por ptr1 no acumulador
+  74   004A    39 82 00        SUB @TMP_PTR2       ; *ptr2 - *ptr1
+  75   004D    94 60 00        JP SWAP             ; se for positivo *ptr1 eh maior entao troco as entradas
+  76                         
+  77                         ; indo pra swap ou nao eu incremento os ponteiros para proxima iteracao
+  78   0050                  INCREMENTA_PTRS:
+  79   0050    20 80 00        LDA TMP_PTR1            ; carrega ptr1 no acumulador   
+  80   0053    32 02           ADD #2                  ; soma 2 no acumulador
+  81   0055    10 80 00        STA TMP_PTR1            ; ptr1++
+  82   0058    32 02           ADD #2                  ; soma 2 no acumulador
+  83   005A    10 82 00        STA TMP_PTR2            ; ptr2 = ptr1 + 4
+  84   005D    80 2E 00        JMP FOR_LOOP            ; volta pro for_loop
+  85                         ;-------------------------------------------------------
+  86                         
+  87                         ;------------------------------------------------------
+  88                         ; troca os valores apontados por ptr1 e ptr2
+  89   0060                  SWAP:
+  90   0060    21 80 00        LDA @TMP_PTR1                  ; valor apontado de ptr1 no acumulador
+  91   0063    10 84 00        STA TMP_VALUE                  ; temp = *ptr1
+  92   0066    21 82 00        LDA @TMP_PTR2                  ; valor apontado de ptr2 no acumulador
+  93   0069    11 80 00        STA @TMP_PTR1                  ; *ptr1 = *ptr2
+  94   006C    20 84 00        LDA TMP_VALUE                  ; valor temporario (*ptr1) no acumulador
+  95   006F    11 82 00        STA @TMP_PTR2                  ; *ptr2 = *ptr1
+  96   0072    22 01           LDA #1                         ; carrega 1 no acumulador
+  97   0074    10 87 00        STA TROCOU                     ; booleano para verificacao de troca de variaveis
+  98   0077    80 50 00        JMP INCREMENTA_PTRS            ; apos trocar os valores incrementos os ponteiros para proxima iteracao
+  99                         ;--------------------------------------------------------
+ 100                         
+ 101                         ;--------------------------------------------------------
+ 102                         ; termina execucao do programa
+ 103   007A                  SAIR:
+ 104   007A    FC              HLT
+ 105                         ;----------------------------------------------------------
+
+Listagem da tabela de símbolos
+
+Símbolo         Linha  Endereço
+CLEAR               7  0003
+COMPARE            71  0047
+COUNT              14  0086
+FIM_FOR_LOOP       65  0044
+FOR_LOOP           52  002E
+INCREMENTA_PTRS    77  0050
+LENGTH             17  0088
+PRINT               8  0002
+SAIR              102  007A
+SWAP               88  0060
+TMP_PTR1           11  0080
+TMP_PTR2           12  0082
+TMP_VALUE          13  0084
+TROCOU             15  0087
+VECTOR             18  0089
+VECTOR_PTR         19  00C5
+WHILE_LOOP         38  0013

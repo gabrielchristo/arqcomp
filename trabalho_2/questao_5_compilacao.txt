@@ -1,0 +1,205 @@
+Compilação (assembly) do texto
+Em 06/10/2020
+
+   1                         ;---------------------------------------------------
+   2                         ; Program: Descobrir palindromo
+   3                         ; Author:  Vinícius Lima Medeiros
+   4                         ; Date:    03/10/2020
+   5                         ;---------------------------------------------------
+   6                         ; OBS: o caractere final ao invés de ser o nulo será a #
+   7                         ORG 500
+   8   01F4                  letra: DS 1             ; letra que foi recém digitada no console
+   9                                                 ; pilha 1 serve para por as letras de input do console
+  10                                                 ; pilha 2 serve para desempilhar a pilha 1 para fazer a comparação com ela com os valores invertidos
+  11   01F5    0000          top1: DW 0     ; guarda o topo da pilha1
+  12   01F7    0000          top2: DW 0   ; guarda o topo da pilha2
+  13   01F9    0000          pos1: DW 0      ; posição que está sendo desempilhada a letra da pilha1
+  14   01FB    0000          letra1: DW 0    ; letra desempilhada da pilha1
+  15   01FD    00            fim1: DB 0
+  16   01FE    00            fim2: DB 0
+  17                         ORG 0
+  18   0000                  inicio:
+  19   0000    27 00 80            LDS #08000h           ; endereco do topo inicial da pilha2
+  20   0003    22 23               LDA #35               ; seta o caracter # no acumulador (esse será o meu caráctere de final da string)
+  21   0005    E0                  PUSH                  ; coloca o caractere # na pilha
+  22   0006    14 F7 01            STS top2   ; seta na variavel com o endereco do SP
+  23                         
+  24   0009    27 FF FF            LDS #0FFFFh           ; seta o endereço do topo inicial da pilha1 em SP
+  25   000C    22 23               LDA #35               ; seta o caracter # no acumulador (esse será o meu caráctere de final da string)
+  26   000E    E0                  PUSH                  ; coloca o caractere # na pilha
+  27   000F    14 F5 01            STS top1     ; seta na variavel com o endereco do SP
+  28                         
+  29   0012                  leitura:
+  30   0012    22 01               LDA    #1       ; parâmetro adicional do trap (passado pelo acumulador)
+  31   0014    F0 00 00            TRAP   0        ; chama trap com argumentos 1 (ler console)
+  32                                               ; e 0 (nenhum endereço)
+  33   0017    42 00               OR     #0       ; faz or bit a bit com o acumulador, ligando a flag z se nada for digitada
+  34   0019    A0 12 00            JZ     leitura  ; voltar a ler se nenhuma letra foi digitada
+  35                         
+  36   001C                  ignorar_caracter:
+  37   001C    3A 20               SUB    #32      ; diminuir 32 do acumulador (ascii do " " em decimal)
+  38   001E    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 32, então a flag z será
+  39                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  40   0021    32 20               ADD    #32      ; desfazendo o SUB #32 já que não era o " " o caractere de entrada
+  41                                               ; recuperando o valor do acumulador
+  42                         
+  43   0023    3A 2C               SUB    #44      ; diminuir 44 do acumulador (ascii do "," em decimal)
+  44   0025    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 44, então a flag z será
+  45                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  46   0028    32 2C               ADD    #44      ; desfazendo o SUB #44 já que não era o "," o caractere de entrada
+  47                                               ; recuperando o valor do acumulador
+  48                         
+  49   002A    3A 3B               SUB    #59      ; diminuir 59 do acumulador (ascii do ";" em decimal)
+  50   002C    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 59, então a flag z será
+  51                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  52   002F    32 3B               ADD    #59      ; desfazendo o SUB #59 já que não era o ";" o caractere de entrada
+  53                                               ; recuperando o valor do acumulador
+  54                         
+  55   0031    3A 2E               SUB    #46      ; diminuir 46 do acumulador (ascii do "." em decimal)
+  56   0033    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 46, então a flag z será
+  57                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  58   0036    32 2E               ADD    #46      ; desfazendo o SUB #46 já que não era o "." o caractere de entrada
+  59                                               ; recuperando o valor do acumulador
+  60                         
+  61   0038    3A 3A               SUB    #58      ; diminuir 58 do acumulador (ascii do ":" em decimal)
+  62   003A    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 58, então a flag z será
+  63                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  64   003D    32 3A               ADD    #58      ; desfazendo o SUB #58 já que não era o ":" o caractere de entrada
+  65                                               ; recuperando o valor do acumulador
+  66                         
+  67   003F    3A 3F               SUB    #63      ; diminuir 63 do acumulador (ascii do "?" em decimal)
+  68   0041    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 63, então a flag z será
+  69                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  70   0044    32 3F               ADD    #63      ; desfazendo o SUB #63 já que não era o "?" o caractere de entrada
+  71                                               ; recuperando o valor do acumulador
+  72                         
+  73   0046    3A 21               SUB    #33      ; diminuir 33 do acumulador (ascii do "!" em decimal)
+  74   0048    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 33, então a flag z será
+  75                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  76   004B    32 21               ADD    #33      ; desfazendo o SUB #33 já que não era o "!" o caractere de entrada
+  77                                               ; recuperando o valor do acumulador
+  78                         
+  79   004D    3A 22               SUB    #34      ; diminuir 34 do acumulador (ascii do "/"/" em decimal)
+  80   004F    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 34, então a flag z será
+  81                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  82   0052    32 22               ADD    #34      ; desfazendo o SUB #34 já que não era o "/"/" o caractere de entrada
+  83                                               ; recuperando o valor do acumulador
+  84                         
+  85   0054    3A 28               SUB    #40      ; diminuir 40 do acumulador (ascii do "(" em decimal)
+  86   0056    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 40, então a flag z será
+  87                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  88   0059    32 28               ADD    #40      ; desfazendo o SUB #40 já que não era o "(" o caractere de entrada
+  89                                               ; recuperando o valor do acumulador
+  90                         
+  91   005B    3A 2D               SUB    #45      ; diminuir 45 do acumulador (ascii do "-" em decimal)
+  92   005D    A0 12 00            JZ     leitura  ; se o valor no acumulador antes da subtração era 45, então a flag z será
+  93                                               ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  94   0060    32 2D               ADD    #45      ; desfazendo o SUB #45 já que não era o "-" o caractere de entrada
+  95                                               ; recuperando o valor do acumulador
+  96                         
+  97                                                   ; se cair aqui o usuário já digitou o caractere final da string o #
+  98   0062    3A 23               SUB    #35          ; diminuir 35 do acumulador (ascii do "#" em decimal) que será o último caractere da frase (o substituto do caractere nulo)
+  99   0064    A0 7E 00            JZ     desempilha   ; se o valor no acumulador antes da subtração era 35, então a flag z será
+ 100                                                   ; setada após o SUB e o caractere do console será ignorado indo para a flag desempilha para gerar a pilha com string invertida
+ 101   0067    32 23               ADD    #35          ; desfazendo o SUB #35 já que não era o "#" o caractere de entrada
+ 102                                                   ; recuperando o valor do acumulador
+ 103                         
+ 104   0069                  guarda_caracter:
+ 105   0069    10 F4 01            STA    letra    ; guarda o caractér na memoria
+ 106   006C    22 02               LDA    #2       ; parâmetro adicional do trap
+ 107   006E    F0 F4 01            TRAP   letra    ; printa o endereço em "letra" no console (acumulador = 2)
+ 108   0071    20 F4 01            LDA    letra    ; Coloca a letra no acumulador
+ 109   0074    E0                  PUSH            ; Coloca a letra que está no acumulador na pilha1
+ 110   0075    14 F5 01            STS top1  ; Salva o topo da pilha1 na variavel
+ 111   0078    14 F9 01            STS pos1   ; Por enquanto a posicao do valor da pilha a ser desempilhado vai ser o topo até chegar no loop do desempilha
+ 112   007B    80 12 00            JMP    leitura     ; Continua lendo
+ 113                         
+ 114   007E                  desempilha:                ; só dá push na segunda pilha com os valores do pop da primeira (salvar invertido na segunda pilha)
+ 115   007E    E4                  POP                  ; da pop na pilha1 e guarda o valor no acumulador
+ 116   007F    3A 23               SUB #35              ; diminuir 35 do acumulador (ascii do "#" em decimal) que será o último caractere da frase (o substituto do caractere nulo)
+ 117   0081    A0 96 00            JZ  testa_fim1       ; se foi igual a # segunda e primeira pilha já estão prontas para o teste de palíndromo
+ 118   0084    32 23               ADD #35              ; desfazendo o SUB #35 já que não era o "#" o caractere de entrada
+ 119                                                    ; recuperando o valor do acumulador
+ 120   0086    14 F9 01            STS pos1     ; salva a posicao de desempilhamento de letra da pilha1 (após o pop)
+ 121   0089    24 F7 01            LDS top2  ; seta o endereco da pilha2 em SP para desempilhar os valores da pilha1 nela
+ 122   008C    E0                  PUSH                 ; guarda o valor desempilhado da pilha1 na 2 que estava no acumulador após o pop
+ 123   008D    14 F7 01            STS top2  ; salva o novo topo da pilha_dois após o push
+ 124   0090    24 F9 01            LDS pos1     ; seta SP com a posicao antiga da pilha1
+ 125   0093    80 7E 00            JMP desempilha ; se não encontrou o caractere # volta a desempilhar
+ 126                         
+ 127   0096                  testa_fim1:          ; testa se o caractere # vai ser desempilhado da pilha1
+ 128   0096    24 F5 01            LDS top1       ; recupera o topo da pilha1 original (não é a posição do desempilha pos1)
+ 129                                              ; e sim o da última letra que foi colocada após a leitura)
+ 130   0099    E4                  POP            ; coloca esse valor no acumulador
+ 131   009A    E0                  PUSH           ; restaura o topo original (pois a comparação aqui é só se acabou ou nao)
+ 132   009B    3A 23               SUB #35        ; diminuir 35 do acumulador (ascii do "#" em decimal) que será o último caractere da frase (o substituto do caractere nulo)
+ 133   009D    A4 A5 00            JNZ testa_fim2 ; se o caractere nulo não foi achado, pular para o teste_fim2 e não setar fim1 (continuar 0)
+ 134   00A0    22 01               LDA #1         ; se tiver achado então setar na variavel fim1 que a pilha1 já chegou ao final
+ 135   00A2    10 FD 01            STA fim1       ; com o valor #1
+ 136                         
+ 137                         
+ 138   00A5                  testa_fim2:          ; testa se o caractere # vai ser desempilhado da pilha2
+ 139   00A5    24 F7 01            LDS top2       ; recupera o topo da pilha2 original
+ 140                                              ; e sim o da última letra que foi colocada após a leitura)
+ 141   00A8    E4                  POP            ; coloca esse valor no acumulador
+ 142   00A9    E0                  PUSH           ; restaura o topo original (pois a comparação aqui é só se acabou ou nao)
+ 143   00AA    3A 23               SUB #35        ; diminuir 35 do acumulador (ascii do "#" em decimal) que será o último caractere da frase (o substituto do caractere nulo)
+ 144   00AC    A4 B4 00            JNZ testa      ; se o caractere nao foi achado, voltar para o teste de palindromo e nao setar fim2 (continuar 0)
+ 145   00AF    22 01               LDA #1         ; se tiver então setar na variavel fim2 que a pilha2 já chegou ao final
+ 146   00B1    10 FE 01            STA fim2       ; com o valor #1
+ 147                         
+ 148   00B4                  testa:               ; aqui será testado a partir de pops das duas pilhas se a string digitada foi palindroma ou não
+ 149   00B4    20 FD 01            LDA fim1       ; coloca o valor de fim1 no acumulador
+ 150   00B7    44 FE 01            XOR fim2       ; XOR com fim2, se forem diferentes, então não é palindromo pois um acabou antes do outro achar o caractere final
+ 151   00BA    A4 E5 00            JNZ n_pali     ; se o xor der 1 ou seja uma pilha chegou ao final e a outra nao, certamente nao sao palindromos
+ 152                         
+ 153                                              ; se não deu jump no comando acima, então so podemos ter a combinação 0 xor 0 e 1 xor 1.
+ 154   00BD    20 FD 01            LDA fim1       ; guardar fim1 no acumulador
+ 155   00C0    30 FE 01            ADD fim2       ; somar com fim2
+ 156   00C3    3A 02               SUB #2         ; se fim1 e fim2 forem iguais a 1, então a soma dará 2
+ 157   00C5    A0 E2 00            JZ  pali       ; se a subtração der 0 será palindromo, pois ambas chegaram ao final ao mesmo tempo
+ 158                                              ; sem ter letras diferentes em nenhum caso
+ 159                                              ; se não então continuaremos a comparar as letras do topo das duas pilhas
+ 160                         
+ 161   00C8    24 F5 01            LDS top1       ; carrega o topo da pilha1 um em sp
+ 162   00CB    E4                  POP            ; pega o valor do topo da pilha2 e põe no acumulador
+ 163   00CC    10 F4 01            STA letra      ; joga esse valor pra variável auxiliar letra
+ 164   00CF    14 F5 01            STS top1       ; salva o novo topo da pilha1 após o pop
+ 165                         
+ 166   00D2    24 F7 01            LDS top2       ; carrega o topo da pilha2 um em sp
+ 167   00D5    E4                  POP            ; pega o valor do topo da pilha2 e põe no acumulador
+ 168   00D6    14 F7 01            STS top2       ; salva o novo topo da pilha2 após o pop
+ 169   00D9    38 F4 01            SUB letra      ; subtrai o valor do acumulador que é a letra do topo da pilha2 (após o pop)
+ 170                                              ; com a letra do topo da pilha1 que está armazenada na variável auxiliar letra
+ 171   00DC    A4 E5 00            JNZ n_pali     ; se a subtração não der zero, ou seja as letras não forem iguais, certamente não é palíndromo
+ 172   00DF    80 96 00            JMP testa_fim1 ; se são iguais continuar buscando o caractere final para só assim saber se todas as letras das pilhas são iguais
+ 173                         
+ 174   00E2                  pali:
+ 175   00E2    22 00                LDA #0
+ 176   00E4    FC                   HLT
+ 177   00E5                  n_pali:
+ 178   00E5    22 01                LDA #1
+ 179   00E7    FC                   HLT
+ 180                         
+ 181                         
+
+Listagem da tabela de símbolos
+
+Símbolo         Linha  Endereço
+desempilha        113  007E
+fim1               14  01FD
+fim2               15  01FE
+guarda_caracter   103  0069
+ignorar_caracte    35  001C
+inicio             17  0000
+leitura            28  0012
+letra               7  01F4
+letra1             13  01FB
+n_pali            176  00E5
+pali              173  00E2
+pos1               12  01F9
+testa             147  00B4
+testa_fim1        126  0096
+testa_fim2        137  00A5
+top1               10  01F5
+top2               11  01F7

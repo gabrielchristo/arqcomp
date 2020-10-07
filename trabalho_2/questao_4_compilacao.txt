@@ -1,0 +1,200 @@
+Compilação (assembly) do texto
+Em 06/10/2020
+
+   1                         ;---------------------------------------------------
+   2                         ; Program: Calculadora Simples
+   3                         ; Author:  Vinícius Lima Medeiros
+   4                         ; Date:    05/10/2020
+   5                         ;---------------------------------------------------
+   6                         ; formato de entrada do console da calculadora exemplos:
+   7                         ;   +n1*+n2=
+   8                         ;   +n1-n2=
+   9                         ;   -n1-n2=
+  10                         ;   -n1*-n2=
+  11                         ;   sinal numero1 sinal numero2 (sinal de igual) para soma
+  12                         ;   sinal numero1 (sinal de multiplicação) sinal numero2 (sinal de igual) para soma
+  13                         ORG 500
+  14   01F4                  cont_sinal: DS 1        ; quantas vezes o sinal de mais ou menos apareceu no console
+  15   01F5                  digito: DS 1         ; caractere que foi recém digitado no console
+  16                         
+  17                         
+  18                         ; sinal + = 0 sinal - = 1   , multi = 1 se for achado o * e multi = 0 se não for encontrado
+  19   01F6                  sinal1 : DS 1           ; para saber o sinal da 1 parcela
+  20   01F7                  sinal2 : DS 1           ; para saber o sinal da 2 parcela
+  21   01F8                  multi  : DS 1           ; para saber se a conta será de multiplicação
+  22   01F9                  qtd_sinal : DS 1        ; para saber a quantidade de sinais já lidos
+  23                         ; pilha 1 serve para por a primeira parcela da conta
+  24                         ; pilha 2 serve para por a segunda parcela da conta
+  25                         ; pilha 3 serve para por o resultado da operação
+  26                         
+  27   01FA    0000          top1: DW 0   ; guarda o topo da pilha1
+  28   01FC    0000          top2: DW 0   ; guarda o topo da pilha2
+  29   01FE    0000          top3: DW 0   ; guarda o topo da pilha3
+  30                         
+  31                         ORG 0
+  32   0000                  inicio:
+  33   0000    27 AA AA            LDS #0AAAAh ; endereco do topo inicial da pilha3
+  34   0003    22 23               LDA #35     ; seta o caracter # no acumulador (esse será o meu caráctere de final da string)
+  35   0005    E0                  PUSH        ; coloca o caractere # na pilha
+  36   0006    14 FE 01            STS top3    ; seta na variavel com o endereco do SP
+  37                         
+  38                         
+  39   0009    27 00 80            LDS #08000h           ; endereco do topo inicial da pilha2
+  40   000C    22 23               LDA #35               ; seta o caracter # no acumulador (esse será o meu caráctere de final da string)
+  41   000E    E0                  PUSH                  ; coloca o caractere # na pilha
+  42   000F    14 FC 01            STS top2              ; seta na variavel com o endereco do SP
+  43                         
+  44   0012    27 FF FF            LDS #0FFFFh           ; seta o endereço do topo inicial da pilha1 em SP
+  45   0015    22 23               LDA #35               ; seta o caracter # no acumulador (esse será o meu caráctere de final da string)
+  46   0017    E0                  PUSH                  ; coloca o caractere # na pilha
+  47   0018    14 FA 01            STS top1              ; seta na variavel com o endereco do SP
+  48                         
+  49   001B    22 00               LDA #0         ; seta 0 no acumulador
+  50   001D    10 F4 01            STA cont_sinal ; passa esse valor para o contador de sinal
+  51                         
+  52   0020    22 00               LDA #0         ; seta 0 no acumulador
+  53   0022    10 F6 01            STA sinal1     ; passa esse valor para o sinal1 (iniciado como positivo: 0)
+  54                         
+  55   0025    22 00               LDA #0         ; seta 0 no acumulador
+  56   0027    10 F7 01            STA sinal2     ; passa esse valor para o sinal2 (iniciado como positivo: 0)
+  57                         
+  58   002A    22 00               LDA #0         ; seta 0 no acumulador
+  59   002C    10 F8 01            STA multi      ; passa esse valor para o multi
+  60                         
+  61   002F    22 00               LDA #0         ; seta 0 no acumulador
+  62   0031    10 F9 01            STA qtd_sinal  ; quantidade de mais ou menos lidos (para controlar entrada das parcelas)
+  63                         
+  64   0034                  le_parcela:
+  65   0034    22 01               LDA    #1         ; parâmetro adicional do trap (passado pelo acumulador)
+  66   0036    F0 00 00            TRAP   0          ; chama trap com argumentos 1 (ler console)
+  67                                                 ; e 0 (nenhum endereço)
+  68   0039    42 00               OR     #0         ; faz or bit a bit com o acumulador, ligando a flag z se nada for digitada
+  69   003B    A0 34 00            JZ     le_parcela ; voltar a ler se nenhuma letra foi digitada
+  70                         
+  71   003E                  identifica_sinal:
+  72   003E    10 F5 01            STA    digito     ; guarda o valor digitado em digito
+  73   0041    3A 2D               SUB    #45        ; diminuir 45 do acumulador (ascii do "-" em decimal)
+  74   0043    A0 84 00            JZ     seta_neg   ; se o valor no acumulador antes da subtração era 45, então a flag z será
+  75                                                 ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  76   0046    32 2D               ADD    #45        ; desfazendo o SUB #45 já que não era o "-" o caractere de entrada
+  77                                                 ; recuperando o valor do acumulador
+  78                         
+  79                         
+  80   0048    3A 2B               SUB    #43          ; diminuir 43 do acumulador (ascii do "+" em decimal)
+  81   004A    A0 B4 00            JZ     seta_pos     ; se o valor no acumulador antes da subtração era 43, então a flag z será
+  82                                                   ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  83   004D    32 2B               ADD    #43          ; desfazendo o SUB #43 já que não era o "+" o caractere de entrada
+  84                                                   ; recuperando o valor do acumulador
+  85                         
+  86   004F    3A 2A               SUB    #42          ; diminuir 42 do acumulador (ascii do "*" em decimal)
+  87   0051    A0 DA 00            JZ     seta_mult    ; se o valor no acumulador antes da subtração era 42, então a flag z será
+  88                                                   ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  89   0054    32 2A               ADD    #42          ; desfazendo o SUB #42 já que não era o "+" o caractere de entrada
+  90                         
+  91   0056    3A 3D               SUB    #61          ; diminuir 61 do acumulador (ascii do "=" em decimal)
+  92   0058    A0 E2 00            JZ     igual        ; se o valor no acumulador antes da subtração era 61, então a flag z será
+  93                                                   ; setada após o SUB e o caractere do console será ignorado voltando para a flag leitura
+  94   005B    32 3D               ADD    #61          ; desfazendo o SUB #61 já que não era o "+" o caractere de entrada
+  95                         
+  96                         
+  97                         
+  98   005D                  guarda_digito:
+  99   005D    22 02               LDA    #2           ; parâmetro adicional do trap
+ 100   005F    F0 F5 01            TRAP   digito       ; printa o endereço em "letra" no console (acumulador = 2)
+ 101   0062    20 F9 01            LDA    qtd_sinal    ; recupera a qtd_sinal no acumulador
+ 102   0065    3A 01               SUB    #1           ; subtrai para fazer o teste
+ 103   0067    A0 77 00            JZ     empilha1     ; se qtd_sinal era 1 empilhar na parcela1
+ 104   006A                  empilha2:                 ; empilha na pilha da parcela2
+ 105   006A    24 FC 01            LDS    top2         ; recupera o valor do topo da pilha
+ 106   006D    20 F5 01            LDA    digito       ; recupera o valor do digito lido no acumulador
+ 107   0070    E0                  PUSH                ; Coloca a letra que está no acumulador na pilha1
+ 108   0071    14 FC 01            STS    top2         ; Salva o topo da pilha1 na variavel
+ 109   0074    80 34 00            JMP    le_parcela   ; Continua lendo
+ 110   0077                  empilha1:                 ; empilha na pilha da parcela1
+ 111   0077    24 FA 01            LDS    top1         ; recupera o valor do topo da pilha
+ 112   007A    20 F5 01            LDA    digito       ; recupera o valor do digito lido no acumulador
+ 113   007D    E0                  PUSH                ; Coloca a letra que está no acumulador na pilha1
+ 114   007E    14 FA 01            STS    top1         ; Salva o topo da pilha1 na variavel
+ 115   0081    80 34 00            JMP    le_parcela   ; Continua lendo
+ 116                         
+ 117                         
+ 118   0084                  seta_neg:
+ 119   0084    32 2D               ADD    #45
+ 120   0086    10 F5 01            STA    digito       ; guarda o caractér na memoria
+ 121   0089    22 02               LDA    #2           ; parâmetro adicional do trap
+ 122   008B    F0 F5 01            TRAP   digito       ; printa o endereço em "letra" no console (acumulador = 2)
+ 123                         
+ 124   008E    20 F9 01            LDA qtd_sinal   ; seta qtd_sinal no acumulador
+ 125   0091    3A 01               SUB #1          ; diminui 1 para o JZ
+ 126   0093    A0 A5 00            JZ  seta_neg2   ; se a qtd_sinal foi 1 antes da subtracao, então estamos setando o segundo sinal
+ 127                         
+ 128   0096                  seta_neg1:            ; seta o primeiro sinal como negativo
+ 129   0096    32 01               ADD #1          ; recupera a subtração
+ 130   0098    32 01               ADD #1          ; soma pois achou um sinal
+ 131   009A    10 F9 01            STA qtd_sinal   ; joga para qtd_sinal
+ 132   009D    22 01               LDA #1          ; bota o valor do sinal1 no acumulador 1 para negativo
+ 133   009F    10 F6 01            STA sinal1      ; seta sinal1 como negativo
+ 134   00A2    80 34 00            JMP le_parcela  ; volta a ler o resto da parcela
+ 135                         
+ 136   00A5                  seta_neg2:            ; seta o segundo sinal como negativo
+ 137   00A5    32 01               ADD #1          ; recupera a subtração para teste do jz
+ 138   00A7    32 01               ADD #1          ; como foi encontrado mais um sinal então vamos somar
+ 139   00A9    10 F9 01            STA qtd_sinal   ; joga o valor do acumulador para qtd_sinal
+ 140   00AC    22 01               LDA #1          ; seta 1 no acumulador
+ 141   00AE    10 F7 01            STA sinal2      ; marca como um na variavel sinal1 (negativo)
+ 142   00B1    80 34 00            JMP le_parcela  ; continua lendo a parcela
+ 143                         
+ 144                         
+ 145   00B4                  seta_pos:
+ 146   00B4    32 2B               ADD    #43
+ 147   00B6    10 F5 01            STA    digito       ; guarda o caractér na memoria
+ 148   00B9    22 02               LDA    #2           ; parâmetro adicional do trap
+ 149   00BB    F0 F5 01            TRAP   digito       ; printa o endereço em "letra" no console (acumulador = 2)
+ 150   00BE    20 F9 01            LDA qtd_sinal   ; seta qtd_sinal no acumulador
+ 151   00C1    3A 01               SUB #1          ; diminui 1 para o JZ
+ 152   00C3    A0 D0 00            JZ  seta_pos2    ; se a qtd_sinal foi 1 antes da subtracao, então estamos setando o segundo sinal
+ 153   00C6                  seta_pos1:
+ 154   00C6    32 01               ADD #1          ; recupera a subtração
+ 155   00C8    32 01               ADD #1          ; soma pois achou um sinal
+ 156   00CA    10 F9 01            STA qtd_sinal   ; joga para qtd_sinal
+ 157   00CD    80 34 00            JMP le_parcela  ; volta a ler o resto da parcela
+ 158   00D0                  seta_pos2:
+ 159   00D0    32 01               ADD #1           ; recupera a subtração
+ 160   00D2    32 01               ADD #1           ; soma pois achou um sinal
+ 161   00D4    10 F9 01            STA qtd_sinal    ; joga para qtd_sinal
+ 162   00D7    80 34 00            JMP le_parcela   ; continua lendo parcela
+ 163                         
+ 164   00DA                  seta_mult:
+ 165   00DA    22 01               LDA #1
+ 166   00DC    10 F8 01            STA multi
+ 167   00DF    80 34 00            JMP le_parcela
+ 168                         
+ 169   00E2                  igual:
+ 170   00E2    FC                  HLT
+
+Listagem da tabela de símbolos
+
+Símbolo         Linha  Endereço
+cont_sinal         13  01F4
+digito             14  01F5
+empilha1          109  0077
+empilha2          103  006A
+guarda_digito      97  005D
+identifica_sina    70  003E
+igual             168  00E2
+inicio             31  0000
+le_parcela         63  0034
+multi              20  01F8
+qtd_sinal          21  01F9
+seta_mult         163  00DA
+seta_neg          117  0084
+seta_neg1         127  0096
+seta_neg2         135  00A5
+seta_pos          144  00B4
+seta_pos1         152  00C6
+seta_pos2         157  00D0
+sinal1             18  01F6
+sinal2             19  01F7
+top1               26  01FA
+top2               27  01FC
+top3               28  01FE

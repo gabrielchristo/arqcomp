@@ -1,0 +1,121 @@
+Compilação (assembly) do texto
+Em 06/10/2020
+
+   1                         ;
+   2                         ; Ler valor de 16 bits em complemento a dois do teclado virtual
+   3                         ; Em seguida mostrar seu valor em decimal no banner
+   4                         ; * - eh negativo
+   5                         ; # - fim do input
+   6                         ;
+   7                         
+   8                         ORG 128
+   9   0080    00              EH_NEGATIVO: DB 0     ; booleano que indica se o valor eh negativo
+  10   0081    0000            PILHA: DW 0        ;  pilha com N bytes
+  11   0083    00              ULTIMO_CHAR: DB 0     ;
+  12   0084    00              CONTADOR_BITS: DB 0   ;
+  13   0085    00              CONTADOR_SHIFT: DB 0   ;
+  14   0086    00              VALOR_FINAL: DB 0     ;
+  15   0087    00              TEMP: DB 0          ;
+  16                         
+  17                         ORG 0
+  18   0000    C6 03           OUT 3            ; limpa o banner
+  19                           
+  20   0002    27 B0 00        LDS #00B0H          ; inicializa pilha com # na base
+  21   0005    22 23           LDA #HASHTAG_ASCII
+  22   0007    E0              PUSH
+  23   0008    14 81 00        STS PILHA
+  24                         
+  25   000B                  ESPERA_INPUT:
+  26   000B    C2 03           IN 3             ; verifica se tecla foi pressionada
+  27   000D    32 00           ADD #0            ; soma 0 ao acumulador
+  28   000F    A0 0B 00        JZ ESPERA_INPUT   ; se for zero volta a esperar input
+  29   0012    C2 02           IN 2               ; se teve input carrego o valor ascii correspondente no acumulador
+  30   0014    10 83 00        STA ULTIMO_CHAR
+  31   0017    80 1A 00        JMP CHECA_ENTRADA
+  32                           
+  33   001A                  CHECA_ENTRADA:
+  34   001A    20 83 00        LDA ULTIMO_CHAR            ; se for * eh negativo
+  35   001D    3A 2A           SUB #ESTRELA_ASCII
+  36   001F    A0 3B 00        JZ INPUT_ESTRELA
+  37   0022    20 83 00        LDA ULTIMO_CHAR             ; se for # finalizo input e inicio conversao
+  38   0025    3A 23           SUB #HASHTAG_ASCII
+  39   0027    A0 73 00        JZ SAIR
+  40   002A    20 83 00        LDA ULTIMO_CHAR            ; caso contrario adiciono o numero na pilha e printo o mesmo
+  41   002D    E0              PUSH
+  42   002E    C6 02           OUT 2
+  43   0030    20 84 00        LDA CONTADOR_BITS
+  44   0033    32 01           ADD #1
+  45   0035    10 84 00        STA CONTADOR_BITS
+  46   0038    80 0B 00        JMP ESPERA_INPUT
+  47                         
+  48   003B                  INPUT_ESTRELA:
+  49   003B    22 01           LDA #1
+  50   003D    10 80 00        STA EH_NEGATIVO
+  51   0040    80 0B 00        JMP ESPERA_INPUT
+  52                         
+  53                         
+  54                         
+  55                         
+  56                         ;-----------------------------
+  57                         ; essa parte aqui ? experimental
+  58                         ; a parte de cima efetivamente pega o input do numero binario
+  59   0043                  CONVERTER:
+  60   0043    E4              POP
+  61   0044    3A 31           SUB #ZERO_ASCII
+  62   0046    10 87 00        STA TEMP
+  63   0049    20 85 00        LDA CONTADOR_SHIFT
+  64   004C    32 00           ADD #0
+  65   004E    A4 5A 00        JNZ SHIFT
+  66   0051    20 86 00        LDA VALOR_FINAL
+  67   0054    30 87 00        ADD TEMP
+  68   0057    10 86 00        STA VALOR_FINAL
+  69   005A                  SHIFT:
+  70                           ;LDA CONTADOR_SHIFT
+  71   005A    80 5D 00        JMP PRINTA_VALOR_FINAL
+  72   005D                  PRINTA_VALOR_FINAL:
+  73   005D    C6 03           OUT 3             ; 
+  74   005F    20 80 00        LDA EH_NEGATIVO
+  75   0062    32 00           ADD #0
+  76   0064    A0 6B 00        JZ SOMENTE_VALOR
+  77   0067    22 2D           LDA #TRACO_ASCII
+  78   0069    C6 02           OUT 2
+  79   006B                  SOMENTE_VALOR:
+  80   006B    20 86 00        LDA VALOR_FINAL
+  81   006E    C6 00           OUT 0
+  82   0070    80 73 00        JMP SAIR
+  83                         ;--------------------------------------------------
+  84                         
+  85                         
+  86   0073                  SAIR:
+  87   0073    FC              HLT
+  88                         
+  89                         
+  90                         ZERO_ASCII EQU 49 ; 31H
+  91                         UM_ASCII EQU 50    ; 32H
+  92                         ESTRELA_ASCII EQU 42 ; 2AH
+  93                         HASHTAG_ASCII EQU 35 ; 23H
+  94                         TRACO_ASCII EQU 45 ; 2DH
+
+Listagem da tabela de símbolos
+
+Símbolo         Linha  Endereço
+CHECA_ENTRADA      32  001A
+CONTADOR_BITS      11  0084
+CONTADOR_SHIFT     12  0085
+CONVERTER          58  0043
+EH_NEGATIVO         8  0080
+ESPERA_INPUT       24  000B
+ESTRELA_ASCII      91  002A
+HASHTAG_ASCII      92  0023
+INPUT_ESTRELA      47  003B
+PILHA               9  0081
+PRINTA_VALOR_FI    71  005D
+SAIR               85  0073
+SHIFT              68  005A
+SOMENTE_VALOR      78  006B
+TEMP               14  0087
+TRACO_ASCII        93  002D
+ULTIMO_CHAR        10  0083
+UM_ASCII           90  0032
+VALOR_FINAL        13  0086
+ZERO_ASCII         89  0031
