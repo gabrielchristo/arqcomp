@@ -1,2 +1,2 @@
 # ArqComp
-Trabalhos de programação da disciplina arquitetura de computadores em 2020.PLE
+Trabalhos da disciplina arquitetura de computadores em 2020.PLE
