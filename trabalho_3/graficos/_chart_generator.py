@@ -1,7 +1,7 @@
 ﻿from os import listdir
 from os.path import isfile, join
 
-is_using_cache_l2 = False
+is_using_cache_l2 = True
 
 gnuplot_file = '_chart.plt'
 gnuplot_misses = '_chart_misses.plt'
@@ -35,17 +35,21 @@ if is_using_cache_l2 is True:
 TA1 = 3 #ns
 TA2 = 15 #ns
 
-pltDefine1 = "set title 'Capacidade da cache'\nset xlabel 'Valor (KB)'\nset ylabel 'Taxa de falha (%)'\nset multiplot layout 1,2 columnsfirst\nset style line 1 lc rgb 'blue' pt 7\n"
-pltPlot1 = "plot '_chart_size.txt' notitle w p ls 1\n"
-pltDefine2 = "set title ' '\nset xlabel 'Valor (KB)'\nset ylabel 'Tempo médio de acesso (ns)'\n"
-pltPlot2 = "plot '_chart_size_tma.txt' notitle w p ls 1"
+### TMA e MissesRate
+xlabel = "'Valor'"
+pltDefine1 = "set grid\nset title ' '\nset xlabel "+xlabel+"\nset ylabel 'Taxa de falha (%)'\nset multiplot layout 1,2 columnsfirst\nset style line 1 lc rgb '#3ecc0a' pt 7\nset pointsize 0.8\nset xtics (1,2,4,8,16)\n"
+pltPlot1 = "plot '_chart_assoc.txt' notitle w p ls 1\n"
+pltDefine2 = "set title ' '\nset xlabel "+xlabel+"\nset ylabel 'Tempo médio de acesso (ns)'\n"
+pltPlot2 = "plot '_chart_assoc_tma.txt' notitle w p ls 1"
 
 ### Misses ###
-pltDefine3 = "set title 'Misses'\nset xlabel 'Valor (KB)'\nset ylabel 'Compulsory'\nset multiplot layout 1,3 columnsfirst\nset style line 1 lc rgb 'blue' pt 7\n"
+pltDefine3 = "set grid\nset title ' '\nset xlabel "+xlabel+"\nset ylabel 'Falhas compulsórias (%)'\nset multiplot layout 1,3 columnsfirst\nset style line 1 lc rgb '#3ecc0a' pt 7\nset pointsize 0.5\nset xtics (1,2,4,8,16)\n"
 pltPlot3 = "plot '_chart_compulsory.txt' notitle w p ls 1\n"
-pltDefine4 = "set title ' '\nset xlabel 'Valor (KB)'\nset ylabel 'Capacity'\n"
+
+pltDefine4 = "set title ' '\nset xlabel "+xlabel+"\nset ylabel 'Falhas por capacidade (%)'\n"
 pltPlot4 = "plot '_chart_capacity.txt' notitle w p ls 1\n"
-pltDefine5 = "set xlabel 'Valor (KB)'\nset ylabel 'Conflict'\n"
+
+pltDefine5 = "set title ' '\nset xlabel "+xlabel+"\nset ylabel 'Falhas por conflito (%)'\n"
 pltPlot5 = "plot '_chart_conflict.txt' notitle w p ls 1\n"
 
 def getTF(lineSize):
@@ -58,6 +62,7 @@ def getCurrentDirFiles():
 	files.remove('_chart_generator.py')
 	files.remove(gnuplot_file)
 	files.remove(gnuplot_misses)
+	#files.remove('_output_img.png')
 	# L1
 	files.remove('_chart_size.txt')
 	files.remove('_chart_bsize.txt')
@@ -104,11 +109,11 @@ def getTotalDemandMissRateL2(text):
 	
 def getLineSize(text):
 	if(is_using_cache_l2 is False):
-		return float(getEntry(text, 12, 1)) / 1000.0 # Bytes to KB
-	return float(getEntry(text, 13, 1)) / 1000.0 # Bytes to KB
+		return float(getEntry(text, 12, 1)) #/ 1000.0 # Bytes to KB
+	return float(getEntry(text, 13, 1)) #/ 1000.0 # Bytes to KB
 	
 def getLineSizeL2(text):
-	return float(getEntry(text, 14, 1)) / 1000.0 # Bytes to KB
+	return float(getEntry(text, 14, 1)) #/ 1000.0 # Bytes to KB
 	
 def getSize(text):
 	return float(getEntry(text, 11, 1)) / 1000.0 # Bytes to KB
@@ -180,9 +185,9 @@ if __name__ == '__main__':
 			l1_com = getCompulsory(content)
 			l1_cap = getCapacity(content)
 			l1_con = getConflict(content)
-			l1_compulsory.write("{} {}\n".format(size, l1_com))
-			l1_capacity.write("{} {}\n".format(size, l1_cap))
-			l1_conflict.write("{} {}\n".format(size, l1_con))
+			l1_compulsory.write("{} {}\n".format(assoc, l1_com))    # SIZE ou ASSOC ou LINESIZE
+			l1_capacity.write("{} {}\n".format(assoc, l1_cap))
+			l1_conflict.write("{} {}\n".format(assoc, l1_con))
 			
 			##### L2 #####
 			if is_using_cache_l2 is True:
@@ -191,7 +196,7 @@ if __name__ == '__main__':
 				size_l2 = getSizeL2(content)
 				assoc_l2 = getAssocL2(content)
 				lineSize_l2 = getLineSizeL2(content)
-				tma_l2 = getAverageAcessTime(missRate_l2, lineSize_l2)
+				tma_l2 = getAverageAcessTime(missRate, lineSize_l2, missRate_l2)
 				# writing to files
 				_size_l2.write("{} {}\n".format(size_l2, missRate_l2))
 				_size_tma_l2.write("{} {}\n".format(size_l2, tma_l2))
@@ -203,9 +208,9 @@ if __name__ == '__main__':
 				l2_com = getCompulsoryL2(content)
 				l2_cap = getCapacityL2(content)
 				l2_con = getConflictL2(content)
-				l2_compulsory.write("{} {}\n".format(size, l2_com))
-				l2_capacity.write("{} {}\n".format(size, l2_cap))
-				l2_conflict.write("{} {}\n".format(size, l2_con))
+				l2_compulsory.write("{} {}\n".format(assoc_l2, l2_com))     # SIZE ou ASSOC ou LINESIZE
+				l2_capacity.write("{} {}\n".format(assoc_l2, l2_cap))
+				l2_conflict.write("{} {}\n".format(assoc_l2, l2_con))
 		
 	# writing to gnuplot file
 	chart.write(pltDefine1)
